@@ -1,11 +1,15 @@
 package gexto
 
 import (
-	"os"
-	"github.com/lunixbochs/struc"
 	"fmt"
-	"syscall"
+	"io"
+	"os"
+
+	"github.com/lunixbochs/struc"
 )
+
+// Superblock0Offset is ext superblock offset.
+const Superblock0Offset = 1024
 
 type File struct {
 	extFile
@@ -19,37 +23,30 @@ type FileSystem interface {
 	Close() error
 }
 
-func NewFileSystem(devicePath string) (FileSystem, error) {
-	f, err := os.OpenFile(devicePath, syscall.O_RDWR, 0755)
-	if err != nil {
-		return nil, err
-	}
-
+func NewFileSystem(f io.ReadSeeker) (FileSystem, error) {
 	ret := fs{}
 
-	f.Seek(1024, 0)
+	if _, err := f.Seek(Superblock0Offset, io.SeekStart); err != nil {
+		return nil, fmt.Errorf("failed to seek at superblock: %w", err)
+	}
 
 	ret.dev = f
 	ret.sb = &Superblock{
-		address: 1024,
-		fs: &ret,
-	}
-	err = struc.Unpack(f, ret.sb)
-	if err != nil {
-		return nil, err
+		address: Superblock0Offset,
+		fs:      &ret,
 	}
 
-	//log.Printf("Super:\n%+v\n", *ret.sb)
+	if err := struc.Unpack(f, ret.sb); err != nil {
+		return nil, err
+	}
 
 	numBlockGroups := (ret.sb.GetBlockCount() + int64(ret.sb.BlockPer_group) - 1) / int64(ret.sb.BlockPer_group)
 	numBlockGroups2 := (ret.sb.InodeCount + ret.sb.InodePer_group - 1) / ret.sb.InodePer_group
 	if numBlockGroups != int64(numBlockGroups2) {
-		return nil, fmt.Errorf("Block/inode mismatch: %d %d %d", ret.sb.GetBlockCount(), numBlockGroups, numBlockGroups2)
+		return nil, fmt.Errorf("block/inode mismatch: %d %d %d", ret.sb.GetBlockCount(), numBlockGroups, numBlockGroups2)
 	}
 
 	ret.sb.numBlockGroups = numBlockGroups
 
 	return &ret, nil
 }
-
-

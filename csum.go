@@ -1,8 +1,8 @@
 package gexto
 
 import (
-	"hash/crc32"
 	"encoding/binary"
+	"hash/crc32"
 	"io"
 )
 
@@ -14,16 +14,16 @@ type Checksummer interface {
 
 func NewChecksummer(sb *Superblock) Checksummer {
 	return &checksummer{
-		sb: sb,
-		val: 0,
+		sb:    sb,
+		val:   0,
 		table: crc32.MakeTable(crc32.Castagnoli), // TODO: Check crc used in sb?
 	}
 }
 
 type checksummer struct {
-	sb          *Superblock
-	val         uint32
-	table       *crc32.Table
+	sb    *Superblock
+	val   uint32
+	table *crc32.Table
 }
 
 func (cs *checksummer) Write(b []byte) (n int, err error) {
