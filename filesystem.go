@@ -1,12 +1,12 @@
 package gexto
 
 import (
-	"fmt"
-	"github.com/lunixbochs/struc"
 	"io"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/lunixbochs/struc"
 )
 
 type fs struct {
@@ -37,7 +37,7 @@ func (fs *fs) Open(name string) (*File, error) {
 		}
 
 		if !found {
-			return nil, fmt.Errorf("No such file or directory")
+			return nil, os.ErrNotExist
 		}
 	}
 
@@ -73,7 +73,7 @@ func (fs *fs) Create(path string) (*File, error) {
 		}
 
 		if !found {
-			return nil, fmt.Errorf("No such file or directory")
+			return nil, os.ErrNotExist
 		}
 	}
 
@@ -120,7 +120,7 @@ func (fs *fs) Mkdir(path string, perm os.FileMode) error {
 		}
 
 		if !found {
-			return fmt.Errorf("No such file or directory")
+			return os.ErrNotExist
 		}
 	}
 
