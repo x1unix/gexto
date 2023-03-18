@@ -23,7 +23,7 @@ type FileSystem interface {
 	Close() error
 }
 
-func NewFileSystem(f io.ReadSeeker) (FileSystem, error) {
+func NewFileSystem(f io.ReadWriteSeeker) (FileSystem, error) {
 	ret := fs{}
 
 	if _, err := f.Seek(Superblock0Offset, io.SeekStart); err != nil {

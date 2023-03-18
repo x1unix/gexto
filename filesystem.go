@@ -11,7 +11,7 @@ import (
 
 type fs struct {
 	sb  *Superblock
-	dev io.ReadSeeker
+	dev io.ReadWriteSeeker
 }
 
 func (fs *fs) Open(name string) (*File, error) {
